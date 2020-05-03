@@ -5,10 +5,20 @@
  */
 package com.yahoo.elide.spring.config;
 
+import java.rmi.Naming;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.persistence.spi.PersistenceUnitInfo;
+import javax.sql.DataSource;
+
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.spring.dynamic.compile.ElideDynamicEntityCompiler;
-import com.yahoo.elide.spring.dynamic.compile.ElideDynamicPersistenceUnit;
+import com.yahoo.elide.datastores.jpa.PersistenceUnitInfoImpl;
 import com.yahoo.elide.utils.ClassScanner;
 
 import org.hibernate.cfg.AvailableSettings;
@@ -25,16 +35,6 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.persistence.Entity;
-import javax.persistence.spi.PersistenceUnitInfo;
-import javax.sql.DataSource;
-
 /**
  * Dynamic Configuration For Elide Services. Override any of the beans (by
  * defining your own) and setting flags to disable in properties to change the
@@ -48,6 +48,9 @@ import javax.sql.DataSource;
 public class ElideDynamicConfiguration {
 
     public static final String HIBERNATE_DDL_AUTO = "hibernate.hbm2ddl.auto";
+    public static final String HIBERNATE_PHYSICAL_NAMING = "hibernate.physical_naming_strategy";
+    public static final String HIBERNATE_IMPLICIT_NAMING = "hibernate.implicit_naming_strategy";
+    public static final String HIBERNATE_ID_GEN_MAPPING = "hibernate.use-new-id-generator-mappings";
 
     /**
      * Configure factory bean to create EntityManagerFactory for Dynamic Configuration.
@@ -64,8 +67,6 @@ public class ElideDynamicConfiguration {
             HibernateProperties hibernateProperties,
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler) {
 
-        try {
-
             //Map for Persistent Unit properties
             Map<String, Object> puiPropertyMap = new HashMap<>();
 
@@ -79,12 +80,19 @@ public class ElideDynamicConfiguration {
 
             //Map of JPA Properties to be be passed to EntityManager
             Map<String, String> jpaPropMap = jpaProperties.getProperties();
+
             String hibernateGetDDLAuto = hibernateProperties.getDdlAuto();
+            Naming hibernateGetNaming =  hibernateProperties.getNaming();
+            String hibernateImplicitStrategy = hibernateGetNaming.getImplicitStrategy();
+            String hibernatePhysicalStrategy = hibernateGetNaming.getPhysicalStrategy();
+            Boolean hibernateGetIdenGen = hibernateProperties.isUseNewIdGeneratorMappings();
 
             //Set the relevant property in JPA corresponding to Hibernate Property Value
-            if (jpaPropMap.get(HIBERNATE_DDL_AUTO) == null && hibernateGetDDLAuto != null) {
-               jpaPropMap.put(HIBERNATE_DDL_AUTO, hibernateGetDDLAuto);
-             }
+            hibernateJPAPropertyOverride(jpaPropMap, HIBERNATE_DDL_AUTO, hibernateGetDDLAuto);
+            hibernateJPAPropertyOverride(jpaPropMap, HIBERNATE_PHYSICAL_NAMING, hibernatePhysicalStrategy);
+            hibernateJPAPropertyOverride(jpaPropMap, HIBERNATE_IMPLICIT_NAMING, hibernateImplicitStrategy);
+            hibernateJPAPropertyOverride(jpaPropMap, HIBERNATE_ID_GEN_MAPPING,
+                    (hibernateGetIdenGen != null) ? hibernateGetIdenGen.toString() : null);
 
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
 
@@ -101,8 +109,8 @@ public class ElideDynamicConfiguration {
             puiProps.putAll(puiPropertyMap);
 
             //Create Elide dynamic Persistence Unit
-            ElideDynamicPersistenceUnit elideDynamicPersistenceUnit =
-                    new ElideDynamicPersistenceUnit("dynamic", compiler.classNames, puiProps,
+            PersistenceUnitInfoImpl elideDynamicPersistenceUnit =
+                    new PersistenceUnitInfoImpl("dynamic", compiler.classNames, puiProps,
                     compiler.getClassLoader());
             elideDynamicPersistenceUnit.setNonJtaDataSource(source);
             elideDynamicPersistenceUnit.setJtaDataSource(source);
@@ -140,9 +148,16 @@ public class ElideDynamicConfiguration {
             });
 
             return bean;
-        } catch (Exception e) {
-            log.error("Setting up Dynamic Configuration failed " + e.getMessage());
-            return null;
+    }
+
+    /**
+     * Override Hibernate properties in application.yaml with jpa hibernate properties.
+     */
+    private void hibernateJPAPropertyOverride(Map<String, String> jpaPropMap,
+        String jpaPropertyName, String hibernateProperty) {
+        if (jpaPropMap.get(jpaPropertyName) == null && hibernateProperty != null) {
+            jpaPropMap.put(jpaPropertyName, hibernateProperty);
         }
+
     }
 }

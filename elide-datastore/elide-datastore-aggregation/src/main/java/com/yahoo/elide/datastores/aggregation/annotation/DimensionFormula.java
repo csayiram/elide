@@ -5,19 +5,19 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+
 /**
  * Indicates that a field is computed via a {@link #value()} custom dimension formula expression}, such as Calcite
  * SQL. This is similar to {@link MetricFormula}, except that dimension formula would be applied before aggregation.
  * <p>
- * Example: {@literal @}DimensionFormula("IF({{reference}} {@literal >=} 0, 'positive', 'negative')").
+ * Example: {@literal @}DimensionFormula("IF({{reference}} &ge; 0, 'positive', 'negative')").
  *
  * Rules:
  * 1. The provided references should can be other dimension field defined in the same class, physical column in current

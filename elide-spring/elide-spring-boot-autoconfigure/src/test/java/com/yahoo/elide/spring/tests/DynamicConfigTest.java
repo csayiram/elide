@@ -18,9 +18,9 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
@@ -109,14 +109,12 @@ public class DynamicConfigTest extends IntegrationTest {
                     + "\t\t('SaniaMirza','2','2000-10-01');")
     @Test
     public void jsonApiPostGetViewTest() {
-        String apiPostGetViewRequest = when()
+        when()
                 .get("/json/PlayerStatsView")
                 .then()
                 .body("data.id", hasItems("1"))
                 .body("data.attributes.name", hasItems("SaniaMirza", "SerenaWilliams"))
                 .body("data.attributes.countryCode", hasItems("USA", "IND"))
-                .statusCode(HttpStatus.SC_OK).extract().response().asString();
-        String apiPostGetViewExpected = "{\"data\":[{\"type\":\"PlayerStatsView\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"IND\",\"createdOn\":\"2000-10-01T04:00Z\",\"highScore\":null,\"name\":\"SaniaMirza\"}},{\"type\":\"PlayerStatsView\",\"id\":\"1\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-01T04:00Z\",\"highScore\":null,\"name\":\"SerenaWilliams\"}}]}";
-        assertEquals(apiPostGetViewRequest, apiPostGetViewExpected);
+                .statusCode(HttpStatus.SC_OK);
     }
 }

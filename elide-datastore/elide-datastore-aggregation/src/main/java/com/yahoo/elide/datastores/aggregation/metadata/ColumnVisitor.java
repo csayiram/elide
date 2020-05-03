@@ -5,21 +5,19 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.Path;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+
 /**
- * ColumnVisitor is an abstract class that parses different types of column based on column's {@link ColumnType} and
- * expression.
+ * ColumnVisitor is an abstract class that parses different types of column based on column's {@link ColumnType}.
  *
  * @param <T> output value type
  */

@@ -5,11 +5,20 @@
  */
 package com.yahoo.elide.spring.config;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TimeZone;
+
+import javax.persistence.EntityManagerFactory;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.Injector;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.audit.Slf4jLogger;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
@@ -32,16 +41,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TimeZone;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * Auto Configuration For Elide Services.  Override any of the beans (by defining your own) to change
@@ -56,22 +57,18 @@ public class ElideAutoConfiguration {
      * Creates a entity compiler for compiling dynamic config classes.
      * @param settings
      * @return An instance of ElideDynamicEntityCompiler
+     * @throws Exception
      */
     @Bean
     @ConditionalOnMissingBean
-    public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) {
+    public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) throws Exception {
 
         ElideDynamicEntityCompiler compiler = null;
 
         if (settings.getDynamicConfig().isEnabled()) {
             compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath());
-            try {
-                compiler.compile(settings.getDynamicConfig().getPath());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            compiler.compile();
         }
-
         return compiler;
     }
 
@@ -130,7 +127,7 @@ public class ElideAutoConfiguration {
 
         if (settings.getDynamicConfig().isEnabled()) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
-            Set<Class<?>> annotatedClass = findAnnotatedClasses(compiler, SecurityCheck.class);
+            Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(SecurityCheck.class);
             dictionary.addSecurityChecks(annotatedClass);
         }
 
@@ -151,7 +148,13 @@ public class ElideAutoConfiguration {
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
             throws ClassNotFoundException {
 
-        MetaDataStore metaDataStore = new MetaDataStore();
+        MetaDataStore metaDataStore = null;
+
+        if (settings.getDynamicConfig().isEnabled()) {
+            metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable());
+        } else {
+            metaDataStore = new MetaDataStore();
+        }
 
         if (settings.getDynamicConfig().isEnabled()) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
@@ -181,8 +184,8 @@ public class ElideAutoConfiguration {
 
         if (settings.getDynamicConfig().isEnabled()) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
-            Set<Class<?>> annotatedClass = findAnnotatedClasses(compiler, FromTable.class);
-            annotatedClass.addAll(findAnnotatedClasses(compiler, FromSubquery.class));
+            Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
+            annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
             aggregationDataStore = new AggregationDataStore(queryEngine, annotatedClass);
         } else {
             aggregationDataStore = new AggregationDataStore(queryEngine);

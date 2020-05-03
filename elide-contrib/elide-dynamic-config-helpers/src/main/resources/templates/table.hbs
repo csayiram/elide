@@ -1,7 +1,13 @@
+/*
+ * Copyright 2020, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
 package com.yahoo.elide.contrib.dynamicconfig.model;
 
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
@@ -27,7 +33,6 @@ import javax.persistence.Id;
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Include(rootLevel = true, type = "<%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>")
 @Cardinality(size = CardinalitySize.<%#toUpperCase cardinality%><%/toUpperCase%>)
 @EqualsAndHashCode
 @ToString
@@ -36,6 +41,7 @@ import javax.persistence.Id;
 <%#if sql%>@FromSubquery(sql = "<%sql%>")<%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
 <%#if description%>@Meta(description = "<%description%>")<%/if%>
+<%#if hidden%>@Exclude<%else%>@Include(rootLevel = true, type = "<%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>")<%/if%>
 public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
 
     @Id
@@ -53,6 +59,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     <%#if description%>@Meta(description = "<%description%>")<%/if%>
+    <%#if hidden%>@Exclude<%/if%>
     @DimensionFormula("<%definition%>")
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
 
@@ -75,6 +82,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     @MetricFormula("<%definition%>")
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     <%#if description%>@Meta(description = "<%description%>")<%/if%>
+    <%#if hidden%>@Exclude<%/if%>
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
 
 <%/each%>
