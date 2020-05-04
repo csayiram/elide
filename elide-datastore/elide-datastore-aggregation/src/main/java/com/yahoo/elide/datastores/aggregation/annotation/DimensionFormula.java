@@ -5,13 +5,13 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 
 /**
  * Indicates that a field is computed via a {@link #value()} custom dimension formula expression}, such as Calcite

@@ -18,9 +18,9 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;

@@ -5,14 +5,6 @@
  */
 package com.yahoo.elide.spring.config;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.persistence.EntityManagerFactory;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.Injector;
@@ -32,7 +24,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
-import com.yahoo.elide.spring.dynamic.compile.ElideDynamicEntityCompiler;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -41,8 +32,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
+import java.util.Set;
+import java.util.TimeZone;
+import javax.persistence.EntityManagerFactory;
 
 /**
  * Auto Configuration For Elide Services.  Override any of the beans (by defining your own) to change
@@ -156,13 +153,6 @@ public class ElideAutoConfiguration {
             metaDataStore = new MetaDataStore();
         }
 
-        if (settings.getDynamicConfig().isEnabled()) {
-            ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
-            Set<Class<?>> annotatedClass = findAnnotatedClasses(compiler, FromTable.class);
-            annotatedClass.addAll(findAnnotatedClasses(compiler, FromSubquery.class));
-            metaDataStore.populateEntityDictionary(annotatedClass);
-        }
-
         return new SQLQueryEngine(metaDataStore, entityManagerFactory);
     }
 
@@ -198,29 +188,6 @@ public class ElideAutoConfiguration {
         // meta data store needs to be put at first to populate meta data models
         return new MultiplexManager(jpaDataStore, queryEngine.getMetaDataStore(), aggregationDataStore);
     }
-
-    /**
-     * Find classes with a particular annotation from dynamic compiler.
-     * @param compiler An instance of ElideDynamicEntityCompiler.
-     * @param annotationClass Annotation to search for.
-     * @return Set of Classes matching the annotation.
-     * @throws ClassNotFoundException
-     */
-    private Set<Class<?>> findAnnotatedClasses(ElideDynamicEntityCompiler compiler, Class annotationClass)
-            throws ClassNotFoundException {
-
-        Set<Class<?>> annotatedClass = new HashSet<Class<?>>();
-        ArrayList<String> dynamicClasses = compiler.classNames;
-
-        for (String dynamicClass : dynamicClasses) {
-            Class<?> classz = compiler.getClassLoader().loadClass(dynamicClass);
-            if (classz.getAnnotation(annotationClass) != null) {
-                annotatedClass.add(classz);
-            }
-        }
-
-        return annotatedClass;
-}
 
     /**
      * Creates a singular swagger document for JSON-API.

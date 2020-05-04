@@ -150,11 +150,6 @@
             <version>${spring.boot.version}</version>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>org.mdkt.compiler</groupId>
-            <artifactId>InMemoryJavaCompiler</artifactId>
-            <version>1.3.0</version>
-        </dependency>
 
         <dependency>
             <groupId>org.mdkt.compiler</groupId>
@@ -173,12 +168,6 @@
         <!-- Test Dependencies -->
 
         <!-- YAML for spring config -->
-                <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
-            <version>2.2</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
