@@ -68,9 +68,9 @@ public interface ElideStandaloneSettings {
      *
      * @param injector Service locator for web service for dependency injection.
      * @return Configured ElideSettings object.
-     * @throws ClassNotFoundException
+     * @throws Exception
      */
-    default ElideSettings getElideSettings(ServiceLocator injector) throws ClassNotFoundException {
+    default ElideSettings getElideSettings(ServiceLocator injector) throws Exception {
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
                 new Injector() {
                     @Override
@@ -89,17 +89,14 @@ public interface ElideStandaloneSettings {
         EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(getModelPackageName(),
                 enableAsync(), enableDynamicModelConfig(), getDynamicConfigPath(), getDatabaseProperties());
 
-        MetaDataStore metaDataStore = new MetaDataStore();
+        MetaDataStore metaDataStore = null;
 
         if (enableDynamicModelConfig()) {
             // Add dynamic security checks
             Set<Class<?>> annotatedClasses = Util.populateBindClasses(Util.dynamicEntityCompiler, SecurityCheck.class);
             dictionary.addSecurityChecks(annotatedClasses);
 
-            // Populate metadatastore enity dictionary
-            Set<Class<?>> annotatedFromClasses = Util.populateBindClasses(Util.dynamicEntityCompiler, FromTable.class);
-            annotatedFromClasses.addAll(Util.populateBindClasses(Util.dynamicEntityCompiler, FromSubquery.class));
-            metaDataStore.populateEntityDictionary(annotatedFromClasses);
+            metaDataStore = new MetaDataStore(Util.dynamicEntityCompiler);
         }
 
         SQLQueryEngine queryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory);

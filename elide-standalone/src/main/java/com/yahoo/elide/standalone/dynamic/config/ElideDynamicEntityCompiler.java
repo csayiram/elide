@@ -103,15 +103,6 @@ public class ElideDynamicEntityCompiler {
     }
 
     /**
-     * getter for compiled dynamic class.
-     * @param name - class name
-     * @return compiled class
-     */
-    public Class<?> getCompiled(String name) {
-        return compiledObjects.get(name);
-    }
-
-    /**
      * getter for classed to be bound.
      * @return set of classes to be bound, Dynamic and Declared
      */
