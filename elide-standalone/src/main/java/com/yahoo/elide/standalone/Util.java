@@ -73,23 +73,32 @@ public class Util {
             options.put(AvailableSettings.LOADED_CLASSES, loadedClasses);
         }
 
+        PersistenceUnitInfo persistenceUnitInfo = null;
+
         if (includeDynamicModel) {
             initDynamicConfig(dynamicConfigPath);
             Collection<ClassLoader> classLoaders = new ArrayList<>();
             classLoaders.add(dynamicEntityCompiler.getClassLoader());
             options.put(AvailableSettings.CLASSLOADERS, classLoaders);
-        }
-        PersistenceUnitInfo persistenceUnitInfo = null;
 
-        persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
-                combineModelEntities(dynamicEntityCompiler, modelPackageName,
-                        includeAsyncModel, includeDynamicModel),
-                options,
-                dynamicEntityCompiler.getClassLoader());
-        return new EntityManagerFactoryBuilderImpl(
-                new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>(),
-                dynamicEntityCompiler.getClassLoader())
-                .build();
+            persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
+                    combineModelEntities(dynamicEntityCompiler, modelPackageName,
+                            includeAsyncModel, includeDynamicModel),
+                    options, dynamicEntityCompiler.getClassLoader());
+
+            return new EntityManagerFactoryBuilderImpl(
+                    new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>(),
+                    dynamicEntityCompiler.getClassLoader())
+                    .build();
+        } else {
+            persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
+                    combineModelEntities(dynamicEntityCompiler, modelPackageName,
+                            includeAsyncModel, includeDynamicModel),
+                    options);
+            return new EntityManagerFactoryBuilderImpl(
+                    new PersistenceUnitInfoDescriptor(persistenceUnitInfo), new HashMap<>())
+                    .build();
+        }
     }
 
     public static void initDynamicConfig(String dynamicConfigPath) throws Exception {
@@ -100,11 +109,12 @@ public class Util {
     /**
      * Combine the model entities with Async  and Dynamic models.
      *
+     * @param compiler dynamicCompiler
      * @param modelPackageName Package name
      * @param includeAsyncModel Include Async model package Name
      * @param includeDynamicModel Include Dynamic model package Name
      * @return All entities combined from both package.
-     * @throws ClassNotFoundException
+     * @throws ClassNotFoundException ClassNameNotFound in compiler
      */
     public static List<String> combineModelEntities(ElideDynamicEntityCompiler compiler, String modelPackageName,
             boolean includeAsyncModel, boolean includeDynamicModel) throws ClassNotFoundException {
@@ -137,7 +147,7 @@ public class Util {
      * @param compiler An instance of ElideDynamicEntityCompiler.
      * @param annotationClass Annotation to search for.
      * @return Set of Classes matching the annotation.
-     * @throws ClassNotFoundException
+     * @throws ClassNotFoundException ClassNameNotFound in compiler
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public static List<String> findAnnotatedClassNames(ElideDynamicEntityCompiler compiler, Class annotationClass)

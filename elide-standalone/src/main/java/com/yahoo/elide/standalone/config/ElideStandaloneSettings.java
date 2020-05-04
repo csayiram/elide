@@ -68,7 +68,7 @@ public interface ElideStandaloneSettings {
      *
      * @param injector Service locator for web service for dependency injection.
      * @return Configured ElideSettings object.
-     * @throws Exception
+     * @throws Exception Exception thrown.
      */
     default ElideSettings getElideSettings(ServiceLocator injector) throws Exception {
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
@@ -97,6 +97,8 @@ public interface ElideStandaloneSettings {
             dictionary.addSecurityChecks(annotatedClasses);
 
             metaDataStore = new MetaDataStore(Util.dynamicEntityCompiler);
+        } else {
+            metaDataStore = new MetaDataStore();
         }
 
         SQLQueryEngine queryEngine = new SQLQueryEngine(metaDataStore, entityManagerFactory);

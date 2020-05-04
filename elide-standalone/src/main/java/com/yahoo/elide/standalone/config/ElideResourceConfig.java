@@ -56,16 +56,21 @@ public class ElideResourceConfig extends ResourceConfig {
      * Constructor.
      *
      * @param injector Injection instance for application.
-     * @throws Exception
+     * @param servletContext servlet context instance.
      */
     @Inject
-    public ElideResourceConfig(ServiceLocator injector, @Context ServletContext servletContext) throws Exception {
+    public ElideResourceConfig(ServiceLocator injector, @Context ServletContext servletContext) {
         this.injector = injector;
 
         settings = (ElideStandaloneSettings) servletContext.getAttribute(ELIDE_STANDALONE_SETTINGS_ATTR);
 
         if (settings.enableDynamicModelConfig()) {
-            Util.initDynamicConfig(settings.getDynamicConfigPath());
+            try {
+                Util.initDynamicConfig(settings.getDynamicConfigPath());
+            } catch (Exception e) {
+                log.error("error in resource config" + e.getMessage());
+                throw new IllegalStateException(e);
+            }
         }
 
         // Bind things that should be injectable to the Settings class
@@ -77,8 +82,8 @@ public class ElideResourceConfig extends ResourceConfig {
                             settings.getModelPackageName(), settings.enableAsync(),
                             settings.enableDynamicModelConfig())).to(Set.class).named("elideAllModels");
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    log.debug("error in resource config" + e.getMessage());
+                    log.error("error in resource config" + e.getMessage());
+                    throw new IllegalStateException(e);
                 }
             }
         });
@@ -90,11 +95,9 @@ public class ElideResourceConfig extends ResourceConfig {
                 ElideSettings elideSettings = null;
                 try {
                     elideSettings = settings.getElideSettings(injector);
-                } catch (ClassNotFoundException e) {
-                    //Cannot throw ClassNotFoundException, still need to fail startup.
-                    throw new RuntimeException(e);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    log.error("error in resource config" + e.getMessage());
+                    throw new IllegalStateException(e);
                 }
 
                 Elide elide = new Elide(elideSettings);
