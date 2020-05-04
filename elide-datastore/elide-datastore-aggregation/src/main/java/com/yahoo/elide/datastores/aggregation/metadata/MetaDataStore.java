@@ -95,19 +95,6 @@ public class MetaDataStore extends HashMapDataStore {
     }
 
     /**
-     * Bind dynamic compiled classes to dictionary.
-     * @param dynamicCompiledClasses Dynamically compiled classes
-     */
-    public void populateEntityDictionary(Set<Class<?>> dynamicCompiledClasses) {
-        if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
-            dynamicCompiledClasses.forEach(dynamicCompiledClass -> {
-                dictionary.bindEntity(dynamicCompiledClass, Collections.singleton(Join.class));
-                this.modelsToBind.add(dynamicCompiledClass);
-            });
-        }
-    }
-
-    /**
      * Add a table metadata object.
      *
      * @param table table metadata
