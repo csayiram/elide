@@ -7,8 +7,6 @@ package com.yahoo.elide.standalone;
 
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.jpa.PersistenceUnitInfoImpl;
 import com.yahoo.elide.utils.ClassScanner;
 
@@ -67,8 +65,6 @@ public class Util {
             //Bind entity classes from classpath to Persistence Unit
             ArrayList<Class> loadedClasses = new ArrayList<>();
             loadedClasses.addAll(ClassScanner.getAnnotatedClasses(Entity.class));
-            loadedClasses.addAll(ClassScanner.getAnnotatedClasses(FromTable.class));
-            loadedClasses.addAll(ClassScanner.getAnnotatedClasses(FromSubquery.class));
 
             options.put(AvailableSettings.LOADED_CLASSES, loadedClasses);
         }
@@ -124,8 +120,6 @@ public class Util {
         }
         if (includeDynamicModel) {
             modelEntities.addAll(findAnnotatedClassNames(compiler, Entity.class));
-            modelEntities.addAll(findAnnotatedClassNames(compiler, FromTable.class));
-            modelEntities.addAll(findAnnotatedClassNames(compiler, FromSubquery.class));
         }
         return modelEntities;
     }
